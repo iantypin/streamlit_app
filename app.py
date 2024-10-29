@@ -1,6 +1,8 @@
 import streamlit as st
 from openai import OpenAI
 from fpdf import FPDF
+import base64
+import tempfile
 import os
 
 st.title("Candidate Matching App")
@@ -113,17 +115,41 @@ def create_candidate_pdf(candidate):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Candidate: {candidate['name']}", ln=True)
+    pdf.cell(w=200, h=10, txt=f"Candidate: {candidate['name']}", ln=True)
     for candidate_skill in candidate["skills"]:
-        pdf.cell(200, 10, txt=f"{candidate_skill['skill'].capitalize()}: Proficiency Level {candidate_skill['level']}", ln=True)
-    pdf.output(f"{candidate['name']}_match.pdf")
-    return pdf
+        pdf.cell(
+            w=200,
+            h=10,
+            txt=f"{candidate_skill['skill'].capitalize()}: Proficiency Level {candidate_skill['level']}",
+            ln=True
+        )
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        pdf.output(tmp_file.name)
+        return tmp_file.name
+
+
+def display_pdf(pdf_path):
+    with open(pdf_path, "rb") as pdf_file:
+        base64_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="400" type="application/pdf"></iframe>'
+    return pdf_display
 
 
 if st.button("Find Best Matches"):
     job_skills = extract_skills(job_description)
     matched_candidates = match_candidates(job_skills, candidates)
     for candidate, score in matched_candidates[:3]:
-        candidate_pdf = create_candidate_pdf(candidate)
-        st.write(f"{candidate['name']}: Match Score {score}")
-        st.download_button(candidate_pdf)
+        st.write(f"**{candidate['name']}** - Match Score: {score}")
+
+        pdf_path = create_candidate_pdf(candidate)
+        st.write("Candidate CV:")
+        st.markdown(display_pdf(pdf_path), unsafe_allow_html=True)
+
+        with open(pdf_path, "rb") as pdf_file:
+            st.download_button(
+                label=f"Download {candidate['name']}'s CV as PDF",
+                data=pdf_file,
+                file_name=f"{candidate['name']}_match.pdf",
+                mime="application/pdf"
+            )

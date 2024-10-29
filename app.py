@@ -117,11 +117,13 @@ def create_candidate_pdf(candidate):
     for candidate_skill in candidate["skills"]:
         pdf.cell(200, 10, txt=f"{candidate_skill['skill'].capitalize()}: Proficiency Level {candidate_skill['level']}", ln=True)
     pdf.output(f"{candidate['name']}_match.pdf")
+    return pdf
 
 
 if st.button("Find Best Matches"):
     job_skills = extract_skills(job_description)
     matched_candidates = match_candidates(job_skills, candidates)
     for candidate, score in matched_candidates[:3]:
-        create_candidate_pdf(candidate)
+        candidate_pdf = create_candidate_pdf(candidate)
         st.write(f"{candidate['name']}: Match Score {score}")
+        st.write(candidate_pdf)

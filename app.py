@@ -126,4 +126,4 @@ if st.button("Find Best Matches"):
     for candidate, score in matched_candidates[:3]:
         candidate_pdf = create_candidate_pdf(candidate)
         st.write(f"{candidate['name']}: Match Score {score}")
-        st.write(candidate_pdf)
+        st.download_button(candidate_pdf)

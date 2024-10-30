@@ -150,7 +150,8 @@ if st.button("Extract Skills"):
     st.json(job_skills)
 
 if st.button("Find Best Matches"):
-    job_skills = extract_skills(job_description)
+    if not job_skills:
+        st.write("Please do exctract skills in order to find the best matches.")
     matched_candidates = match_candidates(job_skills, candidates)
     for candidate, score in matched_candidates[:3]:
         st.write(f"**{candidate['name']}** - Match Score: {score}")

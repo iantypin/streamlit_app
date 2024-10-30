@@ -95,6 +95,13 @@ def extract_skills(job_description):
     Please include the skill name, types and proficiency level for each skill based on the information in the job description. 
     Format the response strictly as JSON, with no additional text or explanations.
 
+    **Skill Annotation Details:**
+    - All skill names and types must be in lowercase. For example, use "skill" not "SKILL".
+    - Skills may be multi-word phrases, separated by spaces (e.g., "software engineering").
+    - Each skill may be associated with multiple categories or types, such as "technical skills" or "soft skills."
+    - Nested skills are allowed, where one skill may contain another.
+    - Each skill will have a corresponding proficiency level based on the candidate’s experience.
+
     Job Description:\n{job_description}
 
     Example JSON format:\n{example_job_skills}

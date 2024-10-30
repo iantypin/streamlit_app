@@ -147,14 +147,17 @@ def display_pdf_as_images(pdf_path):
         st.image(image, caption="PDF Preview", use_column_width=True)
 
 
+if "job_skills" not in st.session_state:
+    st.session_state.job_skills = None
+
 if st.button("Extract Skills"):
-    job_skills = extract_skills(job_description)
-    st.json(job_skills)
+    st.session_state.job_skills = extract_skills(job_description)
+    st.json(st.session_state.job_skills)
 
 if st.button("Find Best Matches"):
-    if not job_skills:
-        st.write("Please do exctract skills in order to find the best matches.")
-    matched_candidates = match_candidates(job_skills, candidates)
+    if not st.session_state.job_skills:
+        st.write("Please extract skills in order to find the best matches.")
+    matched_candidates = match_candidates(st.session_state.job_skills, candidates)
     for candidate, score in matched_candidates[:3]:
         st.write(f"**{candidate['name']}** - Match Score: {score}")
 

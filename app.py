@@ -11,6 +11,8 @@ st.title("Candidate Matching App")
 
 job_description = st.text_area("Enter Job Description")
 
+job_skills = None
+
 candidates = [
     {
         "name": "Alex Smith",

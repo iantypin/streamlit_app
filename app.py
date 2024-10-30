@@ -4,6 +4,7 @@ from fpdf import FPDF
 import base64
 import tempfile
 import os
+from pdf2image import convert_from_path
 
 st.title("Candidate Matching App")
 
@@ -70,15 +71,6 @@ candidates = [
 
 
 def extract_skills(job_description):
-    # prompt = f"Extract skills and proficiency from the job description:\n{job_description}"
-    # response = client.chat.completions.create(
-    #     messages={
-    #         'role': 'user',
-    #         'content': prompt
-    #     },
-    #     model="gpt-3.5-turbo",
-    # )
-    # return response.choices[0].text.strip()
     job_skills = {
         "skills": [
             {"skill": "python", "types": ["technical skills"], "level": 4},
@@ -95,6 +87,18 @@ def extract_skills(job_description):
             {"skill": "communication", "types": ["soft skills"], "level": 3}
         ]
     }
+    # prompt = f"""
+    # Based on this json example of job description skills:\n{job_skills}
+    # Extract skills and proficiency from the job description:\n{job_description}
+    # """
+    # response = client.chat.completions.create(
+    #     messages={
+    #         'role': 'user',
+    #         'content': prompt
+    #     },
+    #     model="gpt-3.5-turbo",
+    # )
+    # return response.choices[0].text.strip()
     return job_skills
 
 
@@ -129,12 +133,15 @@ def create_candidate_pdf(candidate):
         return tmp_file.name
 
 
-def display_pdf(pdf_path):
-    with open(pdf_path, "rb") as pdf_file:
-        base64_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="400" type="application/pdf"></iframe>'
-    return pdf_display
+def display_pdf_as_images(pdf_path):
+    images = convert_from_path(pdf_path)
+    for image in images:
+        st.image(image, caption="PDF Preview", use_column_width=True)
 
+
+if st.button("Extract Skills"):
+    job_skills = extract_skills(job_description)
+    st.json(job_skills)
 
 if st.button("Find Best Matches"):
     job_skills = extract_skills(job_description)
@@ -144,8 +151,7 @@ if st.button("Find Best Matches"):
 
         pdf_path = create_candidate_pdf(candidate)
         st.write("Candidate CV:")
-        st.markdown(display_pdf(pdf_path), unsafe_allow_html=True)
-
+        display_pdf_as_images(pdf_path)
         with open(pdf_path, "rb") as pdf_file:
             st.download_button(
                 label=f"Download {candidate['name']}'s CV as PDF",

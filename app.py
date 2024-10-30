@@ -1,7 +1,8 @@
+import json
+
 import streamlit as st
 from openai import OpenAI
 from fpdf import FPDF
-import base64
 import tempfile
 import os
 from pdf2image import convert_from_path
@@ -65,13 +66,13 @@ candidates = [
     }
 ]
 
-# client = OpenAI(
-#     api_key=os.environ.get("OPENAI_API_KEY"),
-# )
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 
 
 def extract_skills(job_description):
-    job_skills = {
+    example_job_skills = {
         "skills": [
             {"skill": "python", "types": ["technical skills"], "level": 4},
             {"skill": "data manipulation", "types": ["technical skills"], "level": 4},
@@ -87,19 +88,24 @@ def extract_skills(job_description):
             {"skill": "communication", "types": ["soft skills"], "level": 3}
         ]
     }
-    # prompt = f"""
-    # Based on this json example of job description skills:\n{job_skills}
-    # Extract skills and proficiency from the job description:\n{job_description}
-    # """
-    # response = client.chat.completions.create(
-    #     messages={
-    #         'role': 'user',
-    #         'content': prompt
-    #     },
-    #     model="gpt-3.5-turbo",
-    # )
-    # return response.choices[0].text.strip()
-    return job_skills
+    prompt = f"""
+    Extract the skills from the following job description in JSON format. 
+    Please include the skill name, types and proficiency level for each skill based on the information in the job description. 
+    Format the response strictly as JSON, with no additional text or explanations.
+
+    Job Description:\n{job_description}
+
+    Example JSON format:\n{example_job_skills}
+
+    Only output the JSON, without any additional text.
+    """
+    response = client.chat.completions.create(
+        messages=[
+            {'role': 'user', 'content': prompt}
+        ],
+        model="gpt-3.5-turbo",
+    )
+    return json.loads(response.choices[0].message.content)
 
 
 def match_candidates(job_skills, candidates):

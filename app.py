@@ -121,11 +121,23 @@ def match_candidates(job_skills, candidates):
     matched_candidates = []
     job_skill_levels = {skill["skill"]: skill["level"] for skill in job_skills['skills']}
     for candidate in candidates:
-        score = sum(
-            min(job_skill_levels.get(skill["skill"], 0), skill["level"])
-            for skill in candidate["skills"]
-        )
-        matched_candidates.append((candidate, score))
+        score = 0
+        matched_skills = []
+        unmatched_skills = []
+
+        for skill in candidate["skills"]:
+            job_level = job_skill_levels.get(skill["skill"])
+            if job_level is not None:
+                match_level = min(job_level, skill["level"])
+                score += match_level
+                matched_skills.append(
+                    {"skill": skill["skill"], "candidate_level": skill["level"], "job_level": job_level}
+                )
+            else:
+                unmatched_skills.append({"skill": skill["skill"], "candidate_level": skill["level"]})
+
+        matched_candidates.append((candidate, score, matched_skills, unmatched_skills))
+
     matched_candidates.sort(key=lambda x: x[1], reverse=True)
     return matched_candidates
 
@@ -164,9 +176,20 @@ if st.button("Extract Skills"):
 if st.button("Find Best Matches"):
     if not st.session_state.job_skills:
         st.write("Please extract skills in order to find the best matches.")
+
     matched_candidates = match_candidates(st.session_state.job_skills, candidates)
-    for candidate, score in matched_candidates[:3]:
+    for candidate, score, matched_skills, unmatched_skills in matched_candidates[:3]:
         st.write(f"**{candidate['name']}** - Match Score: {score}")
+
+        st.write("Matched Skills:")
+        for match in matched_skills:
+            st.write(
+                f"- {match['skill'].capitalize()} (Candidate Level: {match['candidate_level']}, Job Level: {match['job_level']})")
+
+        if unmatched_skills:
+            st.write("Unmatched Skills:")
+            for unmatched in unmatched_skills:
+                st.write(f"- {unmatched['skill'].capitalize()} (Candidate Level: {unmatched['candidate_level']})")
 
         pdf_path = create_candidate_pdf(candidate)
         st.write("Candidate CV:")

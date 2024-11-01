@@ -8,8 +8,6 @@ from pdf2image import convert_from_path
 
 st.title("Candidate Matching App")
 
-job_description = st.text_area("Enter Job Description")
-
 job_skills = None
 
 candidates = [
@@ -122,6 +120,8 @@ for candidate in candidates:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             tmp_file.write(uploaded_file.read())
             candidate["cv_file"] = tmp_file.name
+
+job_description = st.text_area("Enter Job Description")
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),

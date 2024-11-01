@@ -2,7 +2,6 @@ import json
 
 import streamlit as st
 from openai import OpenAI
-import tempfile
 import os
 from pdf2image import convert_from_path
 
@@ -23,7 +22,7 @@ candidates = [
             {"skill": "presentation", "types": ["soft skills"], "level": 4},
             {"skill": "pitch development", "types": ["soft skills"], "level": 4},
         ],
-        "cv_file": "cvs/Ben Walsh CV.pdf",
+        "cv_file": "/mount/src/streamlit_app/cvs/Ben Walsh CV.pdf",
     },
     {
         "name": "Hasan Savas",
@@ -53,7 +52,7 @@ candidates = [
             {"skill": "continuous learning", "types": ["soft skills"], "level": 3},
             {"skill": "statistical modeling", "types": ["technical skills", "data science"], "level": 3}
         ],
-        "cv_file": "cvs/HasanSavas_Resume.pdf",
+        "cv_file": "/mount/src/streamlit_app/cvs/HasanSavas_Resume.pdf",
     },
     {
         "name": "David N. Silverstein",
@@ -110,7 +109,7 @@ candidates = [
             {"skill": "bioinformatics", "types": ["domain expertise"], "level": 3},
             {"skill": "climate modeling", "types": ["domain expertise"], "level": 3}
         ],
-        "cv_file": "cvs/Resume-DS.pdf",
+        "cv_file": "/mount/src/streamlit_app/cvs/Resume-DS.pdf",
     }
 ]
 

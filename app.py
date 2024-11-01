@@ -23,7 +23,7 @@ candidates = [
             {"skill": "presentation", "types": ["soft skills"], "level": 4},
             {"skill": "pitch development", "types": ["soft skills"], "level": 4},
         ],
-        "cv_file": None,
+        "cv_file": "cvs/Ben Walsh CV.pdf",
     },
     {
         "name": "Hasan Savas",
@@ -52,7 +52,8 @@ candidates = [
             {"skill": "problem-solving", "types": ["soft skills"], "level": 3},
             {"skill": "continuous learning", "types": ["soft skills"], "level": 3},
             {"skill": "statistical modeling", "types": ["technical skills", "data science"], "level": 3}
-        ]
+        ],
+        "cv_file": "cvs/HasanSavas_Resume.pdf",
     },
     {
         "name": "David N. Silverstein",
@@ -109,17 +110,9 @@ candidates = [
             {"skill": "bioinformatics", "types": ["domain expertise"], "level": 3},
             {"skill": "climate modeling", "types": ["domain expertise"], "level": 3}
         ],
-        "cv_file": None,
+        "cv_file": "cvs/Resume-DS.pdf",
     }
 ]
-
-st.write("### Upload CVs for Candidates")
-for candidate in candidates:
-    uploaded_file = st.file_uploader(f"Upload CV for {candidate['name']}", type="pdf", key=candidate["name"])
-    if uploaded_file is not None:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            tmp_file.write(uploaded_file.read())
-            candidate["cv_file"] = tmp_file.name
 
 job_description = st.text_area("Enter Job Description")
 

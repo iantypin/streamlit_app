@@ -115,6 +115,14 @@ candidates = [
     }
 ]
 
+st.write("### Upload CVs for Candidates")
+for candidate in candidates:
+    uploaded_file = st.file_uploader(f"Upload CV for {candidate['name']}", type="pdf", key=candidate["name"])
+    if uploaded_file is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            candidate["cv_file"] = tmp_file.name
+
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
@@ -197,14 +205,6 @@ def display_pdf_as_images(pdf_path):
 
 if "job_skills" not in st.session_state:
     st.session_state.job_skills = None
-
-st.write("### Upload CVs for Candidates")
-for candidate in candidates:
-    uploaded_file = st.file_uploader(f"Upload CV for {candidate['name']}", type="pdf", key=candidate["name"])
-    if uploaded_file is not None:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            tmp_file.write(uploaded_file.read())
-            candidate["cv_file"] = tmp_file.name
 
 if st.button("Extract Skills"):
     st.session_state.job_skills = extract_skills(job_description)

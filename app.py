@@ -2,7 +2,6 @@ import json
 
 import streamlit as st
 from openai import OpenAI
-from fpdf import FPDF
 import tempfile
 import os
 from pdf2image import convert_from_path
@@ -15,56 +14,104 @@ job_skills = None
 
 candidates = [
     {
-        "name": "Alex Smith",
-        "text": "Python Data Analyst",
+        "name": "Ben Walsh",
+        "text": "Senior Partnerships Manager",
         "skills": [
-            {"skill": "python", "types": ["technical skills"], "level": 4},
-            {"skill": "data manipulation", "types": ["technical skills"], "level": 4},
-            {"skill": "statistical analysis", "types": ["technical skills"], "level": 4},
-            {"skill": "data visualization", "types": ["technical skills"], "level": 4},
+            {"skill": "project management", "types": ["soft skills"], "level": 4},
+            {"skill": "client services", "types": ["soft skills"], "level": 4},
+            {"skill": "strategy development", "types": ["soft skills"], "level": 4},
+            {"skill": "communication", "types": ["soft skills"], "level": 4},
+            {"skill": "critical thinking", "types": ["soft skills"], "level": 4},
+            {"skill": "presentation", "types": ["soft skills"], "level": 4},
+            {"skill": "pitch development", "types": ["soft skills"], "level": 4},
+        ],
+        "cv_file": None,
+    },
+    {
+        "name": "Hasan Savas",
+        "text": "IT Systems/Data Engineer",
+        "skills": [
+            {"skill": "data science", "types": ["technical skills"], "level": 4},
+            {"skill": "predictive modeling", "types": ["technical skills", "data science"], "level": 3},
+            {"skill": "data visualization", "types": ["technical skills", "data science"], "level": 3},
+            {"skill": "machine learning", "types": ["technical skills", "data science"], "level": 4},
+            {"skill": "data wrangling", "types": ["technical skills", "data science"], "level": 3},
+            {"skill": "database management", "types": ["technical skills"], "level": 3},
+            {"skill": "python", "types": ["technical skills", "programming language"], "level": 4},
+            {"skill": "sql", "types": ["technical skills", "programming language", "database querying"], "level": 4},
+            {"skill": "bash shell scripting", "types": ["technical skills", "scripting"], "level": 3},
+            {"skill": "scikit-learn", "types": ["tool", "python library"], "level": 3},
             {"skill": "pandas", "types": ["tool", "python library"], "level": 4},
             {"skill": "numpy", "types": ["tool", "python library"], "level": 4},
-            {"skill": "sql", "types": ["technical skills", "database querying"], "level": 3},
-            {"skill": "matplotlib", "types": ["tool", "visualization"], "level": 4},
-            {"skill": "seaborn", "types": ["tool", "visualization"], "level": 4},
-            {"skill": "problem-solving", "types": ["soft skills"], "level": 4},
-            {"skill": "independent work", "types": ["soft skills"], "level": 4},
-            {"skill": "communication", "types": ["soft skills"], "level": 4}
+            {"skill": "scipy", "types": ["tool", "python library"], "level": 3},
+            {"skill": "statsmodels", "types": ["tool", "python library"], "level": 3},
+            {"skill": "anaconda", "types": ["tool", "development environment"], "level": 3},
+            {"skill": "keras", "types": ["tool", "machine learning framework"], "level": 3},
+            {"skill": "aws", "types": ["cloud computing", "platform"], "level": 3},
+            {"skill": "aws s3", "types": ["cloud storage", "aws service"], "level": 3},
+            {"skill": "aws athena", "types": ["cloud analytics", "aws service"], "level": 3},
+            {"skill": "xgboost", "types": ["machine learning", "algorithm"], "level": 3},
+            {"skill": "problem-solving", "types": ["soft skills"], "level": 3},
+            {"skill": "continuous learning", "types": ["soft skills"], "level": 3},
+            {"skill": "statistical modeling", "types": ["technical skills", "data science"], "level": 3}
         ]
     },
     {
-        "name": "Jamie Lee",
-        "text": "Junior Data Analyst",
+        "name": "David N. Silverstein",
+        "text": "Machine Learning and Computational Neuroscience Specialist",
         "skills": [
-            {"skill": "python", "types": ["technical skills"], "level": 2},
-            {"skill": "data manipulation", "types": ["technical skills"], "level": 2},
-            {"skill": "statistical analysis", "types": ["technical skills"], "level": 1},
-            {"skill": "data visualization", "types": ["technical skills"], "level": 2},
-            {"skill": "pandas", "types": ["tool", "python library"], "level": 2},
-            {"skill": "numpy", "types": ["tool", "python library"], "level": 2},
-            {"skill": "sql", "types": ["technical skills", "database querying"], "level": 2},
-            {"skill": "matplotlib", "types": ["tool", "visualization"], "level": 1},
-            {"skill": "seaborn", "types": ["tool", "visualization"], "level": 1},
-            {"skill": "problem-solving", "types": ["soft skills"], "level": 2},
-            {"skill": "independent work", "types": ["soft skills"], "level": 2},
-            {"skill": "communication", "types": ["soft skills"], "level": 2}
-        ]
-    },
-    {
-        "name": "Taylor Brown",
-        "text": "Node.js Backend Developer",
-        "skills": [
-            {"skill": "node.js", "types": ["technical skills"], "level": 4},
-            {"skill": "javascript", "types": ["technical skills"], "level": 4},
-            {"skill": "backend development", "types": ["technical skills"], "level": 4},
-            {"skill": "data manipulation", "types": ["technical skills"], "level": 2},
-            {"skill": "express.js", "types": ["tool", "javascript framework"], "level": 4},
-            {"skill": "mongodb", "types": ["database querying"], "level": 3},
-            {"skill": "react", "types": ["tool", "frontend library"], "level": 2},
-            {"skill": "problem-solving", "types": ["soft skills"], "level": 4},
-            {"skill": "independent work", "types": ["soft skills"], "level": 4},
-            {"skill": "communication", "types": ["soft skills"], "level": 3}
-        ]
+            {"skill": "machine learning", "types": ["technical skills"], "level": 4},
+            {"skill": "deep learning", "types": ["technical skills", "machine learning"], "level": 4},
+            {"skill": "recurrent neural networks", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "unsupervised learning", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "classifiers", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "probabilistic reasoning", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "time-series prediction", "types": ["technical skills", "data science"], "level": 3},
+            {"skill": "inference engines", "types": ["technical skills"], "level": 3},
+            {"skill": "genetic algorithms", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "natural language processing", "types": ["technical skills", "machine learning"], "level": 4},
+            {"skill": "computational neuroscience", "types": ["technical skills", "data science"], "level": 4},
+            {"skill": "NeuroAI", "types": ["technical skills", "artificial intelligence"], "level": 3},
+            {"skill": "AGI", "types": ["technical skills", "artificial intelligence"], "level": 2},
+            {"skill": "data visualization", "types": ["technical skills"], "level": 3},
+            {"skill": "cloud platforms", "types": ["technical skills", "deployment"], "level": 3},
+            {"skill": "supercomputing", "types": ["technical skills", "deployment"], "level": 3},
+            {"skill": "Python", "types": ["programming language"], "level": 4},
+            {"skill": "Java", "types": ["programming language"], "level": 3},
+            {"skill": "SQL", "types": ["programming language"], "level": 3},
+            {"skill": "MATLAB/Octave", "types": ["programming language"], "level": 3},
+            {"skill": "R", "types": ["programming language"], "level": 3},
+            {"skill": "C/C++", "types": ["programming language"], "level": 3},
+            {"skill": "Pytorch", "types": ["tool", "machine learning framework"], "level": 3},
+            {"skill": "scikit-learn", "types": ["tool", "machine learning library"], "level": 3},
+            {"skill": "pandas", "types": ["tool", "data analysis"], "level": 3},
+            {"skill": "numpy", "types": ["tool", "data analysis"], "level": 3},
+            {"skill": "networkx", "types": ["tool", "network analysis"], "level": 3},
+            {"skill": "sqlite3", "types": ["tool", "database"], "level": 3},
+            {"skill": "gensim", "types": ["tool", "NLP"], "level": 3},
+            {"skill": "LLMs", "types": ["technical skills", "machine learning"], "level": 3},
+            {"skill": "MySQL", "types": ["database"], "level": 3},
+            {"skill": "MariaDB", "types": ["database"], "level": 3},
+            {"skill": "PostgreSQL", "types": ["database"], "level": 3},
+            {"skill": "Oracle", "types": ["database"], "level": 3},
+            {"skill": "SQL Server", "types": ["database"], "level": 3},
+            {"skill": "SQLite", "types": ["database"], "level": 3},
+            {"skill": "Neo4j", "types": ["database"], "level": 3},
+            {"skill": "Linux", "types": ["environment"], "level": 4},
+            {"skill": "Docker", "types": ["environment", "containerization"], "level": 3},
+            {"skill": "Slurm", "types": ["environment", "scheduler"], "level": 3},
+            {"skill": "PyCharm", "types": ["environment", "IDE"], "level": 3},
+            {"skill": "Git", "types": ["version control"], "level": 3},
+            {"skill": "GCP", "types": ["cloud platform"], "level": 3},
+            {"skill": "AWS", "types": ["cloud platform"], "level": 3},
+            {"skill": "Runpod", "types": ["cloud platform"], "level": 2},
+            {"skill": "IoT", "types": ["deployment"], "level": 2},
+            {"skill": "finance modeling", "types": ["domain expertise"], "level": 3},
+            {"skill": "neuroscience modeling", "types": ["domain expertise"], "level": 3},
+            {"skill": "bioinformatics", "types": ["domain expertise"], "level": 3},
+            {"skill": "climate modeling", "types": ["domain expertise"], "level": 3}
+        ],
+        "cv_file": None,
     }
 ]
 
@@ -142,24 +189,6 @@ def match_candidates(job_skills, candidates):
     return matched_candidates
 
 
-def create_candidate_pdf(candidate):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(w=200, h=10, txt=f"Candidate: {candidate['name']}", ln=True)
-    for candidate_skill in candidate["skills"]:
-        pdf.cell(
-            w=200,
-            h=10,
-            txt=f"{candidate_skill['skill'].capitalize()}: Proficiency Level {candidate_skill['level']}",
-            ln=True
-        )
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-        pdf.output(tmp_file.name)
-        return tmp_file.name
-
-
 def display_pdf_as_images(pdf_path):
     images = convert_from_path(pdf_path)
     for image in images:
@@ -168,6 +197,14 @@ def display_pdf_as_images(pdf_path):
 
 if "job_skills" not in st.session_state:
     st.session_state.job_skills = None
+
+st.write("### Upload CVs for Candidates")
+for candidate in candidates:
+    uploaded_file = st.file_uploader(f"Upload CV for {candidate['name']}", type="pdf", key=candidate["name"])
+    if uploaded_file is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            candidate["cv_file"] = tmp_file.name
 
 if st.button("Extract Skills"):
     st.session_state.job_skills = extract_skills(job_description)
@@ -183,21 +220,20 @@ if st.button("Find Best Matches"):
 
         st.write("Matched Skills:")
         for match in matched_skills:
-            st.write(
-                f"- {match['skill'].capitalize()} (Candidate Level: {match['candidate_level']}, Job Level: {match['job_level']})")
+            st.write(f"- {match['skill'].capitalize()} (Candidate Level: {match['candidate_level']}, Job Level: {match['job_level']})")
 
         if unmatched_skills:
             st.write("Unmatched Skills:")
             for unmatched in unmatched_skills:
                 st.write(f"- {unmatched['skill'].capitalize()} (Candidate Level: {unmatched['candidate_level']})")
 
-        pdf_path = create_candidate_pdf(candidate)
-        st.write("Candidate CV:")
-        display_pdf_as_images(pdf_path)
-        with open(pdf_path, "rb") as pdf_file:
-            st.download_button(
-                label=f"Download {candidate['name']}'s CV as PDF",
-                data=pdf_file,
-                file_name=f"{candidate['name']}_match.pdf",
-                mime="application/pdf"
-            )
+        if candidate["cv_file"]:
+            st.write("Candidate CV Preview:")
+            display_pdf_as_images(candidate["cv_file"])
+            with open(candidate["cv_file"], "rb") as pdf_file:
+                st.download_button(
+                    label=f"Download {candidate['name']}'s CV as PDF",
+                    data=pdf_file,
+                    file_name=f"{candidate['name']}_CV.pdf",
+                    mime="application/pdf"
+                )

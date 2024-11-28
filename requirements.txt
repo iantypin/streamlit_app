@@ -3,3 +3,4 @@ streamlit
 openai
 fpdf
 pdf2image
+esco-skill-extractor

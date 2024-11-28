@@ -4,8 +4,15 @@ import streamlit as st
 from openai import OpenAI
 import os
 from pdf2image import convert_from_path
+from esco import EscoExtractor
 
-st.title("Candidate Matching App")
+st.title("Candidate Matching App with ESCO Validation")
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
+
+esco_extractor = EscoExtractor()
 
 job_skills = None
 
@@ -115,10 +122,6 @@ candidates = [
 
 job_description = st.text_area("Enter Job Description")
 
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
 
 def extract_skills(job_description):
     example_job_skills = {
@@ -172,16 +175,20 @@ def match_candidates(job_skills, candidates):
         matched_skills = []
         unmatched_skills = []
 
+        candidate_skills = [skill["skill"] for skill in candidate["skills"]]
+        validated_skills = esco_extractor.validate_skills(candidate_skills)
+
         for skill in candidate["skills"]:
-            job_level = job_skill_levels.get(skill["skill"])
-            if job_level is not None:
-                match_level = min(job_level, skill["level"])
-                score += match_level
-                matched_skills.append(
-                    {"skill": skill["skill"], "candidate_level": skill["level"], "job_level": job_level}
-                )
-            else:
-                unmatched_skills.append({"skill": skill["skill"], "candidate_level": skill["level"]})
+            if skill["skill"] in validated_skills:
+                job_level = job_skill_levels.get(skill["skill"])
+                if job_level is not None:
+                    match_level = min(job_level, skill["level"])
+                    score += match_level
+                    matched_skills.append(
+                        {"skill": skill["skill"], "candidate_level": skill["level"], "job_level": job_level}
+                    )
+                else:
+                    unmatched_skills.append({"skill": skill["skill"], "candidate_level": skill["level"]})
 
         matched_candidates.append((candidate, score, matched_skills, unmatched_skills))
 

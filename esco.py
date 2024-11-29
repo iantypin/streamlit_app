@@ -17,32 +17,36 @@ class CustomSkillExtractor(SkillExtractor):
         self.device = "cpu"
         self.skills_threshold = 0.45
         self.occupation_threshold = 0.55
+
         if not os.path.exists(self._dir):
             raise FileNotFoundError(f"Data directory does not exist: {self._dir}")
 
         super(SkillExtractor, self).__init__(*args, **kwargs)
+
         self._load_models()
         self._load_skills()
         self._load_occupations()
         self._create_skill_embeddings()
         self._create_occupation_embeddings()
 
-    def _load_models(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self._model = SentenceTransformer("all-MiniLM-L6-v2", device=self.device)
-
     def _load_skills(self):
-        self._skills = pd.read_csv(f"{self._dir}/skills.csv")
+        skills_path = os.path.join(self._dir, "skills.csv")
+        if not os.path.exists(skills_path):
+            raise FileNotFoundError(f"Skills file not found at {skills_path}")
+        self._skills = pd.read_csv(skills_path)
         self._skill_ids = self._skills["id"].to_numpy()
 
     def _load_occupations(self):
-        self._occupations = pd.read_csv(f"{self._dir}/occupations.csv")
+        occupations_path = os.path.join(self._dir, "occupations.csv")
+        if not os.path.exists(occupations_path):
+            raise FileNotFoundError(f"Occupations file not found at {occupations_path}")
+        self._occupations = pd.read_csv(occupations_path)
         self._occupation_ids = self._occupations["id"].to_numpy()
 
     def _create_skill_embeddings(self):
-        if os.path.exists(f"{self._dir}/skill_embeddings.bin"):
-            with open(f"{self._dir}/skill_embeddings.bin", "rb") as f:
+        embeddings_path = os.path.join(self._dir, "skill_embeddings.bin")
+        if os.path.exists(embeddings_path):
+            with open(embeddings_path, "rb") as f:
                 self._skill_embeddings = pickle.load(f).to(self.device)
         else:
             print(
@@ -54,12 +58,13 @@ class CustomSkillExtractor(SkillExtractor):
                 normalize_embeddings=True,
                 convert_to_tensor=True,
             )
-            with open(f"{self._dir}/skill_embeddings.bin", "wb") as f:
+            with open(embeddings_path, "wb") as f:
                 pickle.dump(self._skill_embeddings, f)
 
     def _create_occupation_embeddings(self):
-        if os.path.exists(f"{self._dir}/occupation_embeddings.bin"):
-            with open(f"{self._dir}/occupation_embeddings.bin", "rb") as f:
+        embeddings_path = os.path.join(self._dir, "occupation_embeddings.bin")
+        if os.path.exists(embeddings_path):
+            with open(embeddings_path, "rb") as f:
                 self._occupation_embeddings = pickle.load(f).to(self.device)
         else:
             print(
@@ -71,9 +76,8 @@ class CustomSkillExtractor(SkillExtractor):
                 normalize_embeddings=True,
                 convert_to_tensor=True,
             )
-            with open(f"{self._dir}/occupation_embeddings.bin", "wb") as f:
+            with open(embeddings_path, "wb") as f:
                 pickle.dump(self._occupation_embeddings, f)
-
 
 class EscoExtractor:
     def __init__(self):

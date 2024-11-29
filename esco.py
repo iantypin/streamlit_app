@@ -15,7 +15,7 @@ class CustomSkillExtractor(SkillExtractor):
         if not os.path.exists(self._dir):
             raise FileNotFoundError(f"Data directory does not exist: {self._dir}")
 
-        super().__init__(*args, **kwargs)
+        super(SkillExtractor, self).__init__(*args, **kwargs)
 
     def _load_skills(self):
         self._skills = pd.read_csv(f"{self._dir}/skills.csv")

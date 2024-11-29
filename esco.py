@@ -1,15 +1,35 @@
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
+import pandas as pd
 import requests
 from esco_skill_extractor import SkillExtractor
+
+
+class CustomSkillExtractor(SkillExtractor):
+    def __init__(self, data_dir: Optional[str] = None, *args, **kwargs):
+        self._dir = data_dir if data_dir else __file__.replace("__init__.py", "")
+
+        if not os.path.exists(self._dir):
+            raise FileNotFoundError(f"Data directory does not exist: {self._dir}")
+
+        super().__init__(*args, **kwargs)
+
+    def _load_skills(self):
+        self._skills = pd.read_csv(f"{self._dir}/skills.csv")
+        self._skill_ids = self._skills["id"].to_numpy()
+
+    def _load_occupations(self):
+        self._occupations = pd.read_csv(f"{self._dir}/occupations.csv")
+        self._occupation_ids = self._occupations["id"].to_numpy()
 
 
 class EscoExtractor:
     def __init__(self):
         custom_data_dir = "/mount/src/streamlit_app/data"
-        self.skill_extractor = SkillExtractor(data_dir=custom_data_dir)
+        self.skill_extractor = CustomSkillExtractor(data_dir=custom_data_dir)
 
     def fetch_skill_title(self, uri: str, skill_name: str) -> Optional[str]:
         """

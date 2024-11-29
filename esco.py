@@ -8,7 +8,8 @@ from esco_skill_extractor import SkillExtractor
 
 class EscoExtractor:
     def __init__(self):
-        self.skill_extractor = SkillExtractor()
+        custom_data_dir = "/mount/src/streamlit_app/data"
+        self.skill_extractor = SkillExtractor(data_dir=custom_data_dir)
 
     def fetch_skill_title(self, uri: str, skill_name: str) -> Optional[str]:
         """

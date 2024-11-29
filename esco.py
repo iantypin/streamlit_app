@@ -30,18 +30,19 @@ class EscoExtractor:
         Validates a list of skills by matching them with ESCO skill URIs and fetching their titles using threading.
         """
         skill_uris = self.skill_extractor.get_skills(skills)
-        validated_skills = []
+        validated_skills = {}
 
         def process_skill(skill, uris):
             """
             Processes a single skill by fetching its title for each URI.
             """
-            validated = []
+            validated = {}
             if uris:
                 for uri in uris:
                     title = self.fetch_skill_title(uri, skill)
                     if title:
-                        validated.append(title)
+                        new_value = {skill: title}
+                        validated.update(new_value)
             else:
                 logging.info(f"Skill not found in ESCO: {skill}")
             return validated
@@ -56,7 +57,7 @@ class EscoExtractor:
             for future in as_completed(futures):
                 try:
                     result = future.result()
-                    validated_skills.extend(result)
+                    validated_skills.update(result)
                 except Exception as e:
                     logging.error(f"Error processing skill {futures[future]}: {e}")
 

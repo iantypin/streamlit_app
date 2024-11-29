@@ -28,8 +28,10 @@ candidates = [
             {"skill": "critical thinking", "types": ["soft skills"], "level": 4},
             {"skill": "presentation", "types": ["soft skills"], "level": 4},
             {"skill": "pitch development", "types": ["soft skills"], "level": 4},
+            {"skill": "presentation", "types": ["soft skills"], "level": 4},
         ],
         "cv_file": "/mount/src/streamlit_app/cvs/Ben Walsh CV.pdf",
+        # "cv_file": "cvs/Ben Walsh CV.pdf",
     },
     {
         "name": "Hasan Savas",
@@ -60,6 +62,7 @@ candidates = [
             {"skill": "statistical modeling", "types": ["technical skills", "data science"], "level": 3}
         ],
         "cv_file": "/mount/src/streamlit_app/cvs/HasanSavas_Resume.pdf",
+        # "cv_file": "cvs/HasanSavas_Resume.pdf",
     },
     {
         "name": "David N. Silverstein",
@@ -116,6 +119,7 @@ candidates = [
             {"skill": "bioinformatics", "types": ["domain expertise"], "level": 3},
             {"skill": "climate modeling", "types": ["domain expertise"], "level": 3}
         ],
+        # "cv_file": "cvs/Resume-DS.pdf",
         "cv_file": "/mount/src/streamlit_app/cvs/Resume-DS.pdf",
     }
 ]
@@ -141,8 +145,8 @@ def extract_skills(job_description):
         ]
     }
     prompt = f"""
-    Extract the skills from the following job description in JSON format. 
-    Please include the skill name, types and proficiency level for each skill based on the information in the job description. 
+    Extract the skills from the following job description in JSON format.
+    Please include the skill name, types and proficiency level for each skill based on the information in the job description.
     Format the response strictly as JSON, with no additional text or explanations.
 
     **Skill Annotation Details:**
@@ -167,8 +171,26 @@ def extract_skills(job_description):
     return json.loads(response.choices[0].message.content)
 
 
+def validate_job_desc_skills(job_skills, esco_extractor):
+    job_skill_names = [skill["skill"] for skill in job_skills['skills']]
+
+    validated_skills = esco_extractor.validate_skills(job_skill_names)
+
+    updated_skills = []
+    for skill in job_skills['skills']:
+        not_ver_skill = skill['skill']
+        if not_ver_skill in validated_skills:
+            updated_skill = skill.copy()
+            updated_skill["skill"] = validated_skills[not_ver_skill]
+            updated_skills.append(updated_skill)
+
+    return {"skills": updated_skills}
+
+
 def match_candidates(job_skills, candidates):
     matched_candidates = []
+    updated_skills = []
+
     job_skill_levels = {skill["skill"]: skill["level"] for skill in job_skills['skills']}
     for candidate in candidates:
         score = 0
@@ -179,16 +201,22 @@ def match_candidates(job_skills, candidates):
         validated_skills = esco_extractor.validate_skills(candidate_skills)
 
         for skill in candidate["skills"]:
-            if skill["skill"] in validated_skills:
-                job_level = job_skill_levels.get(skill["skill"])
-                if job_level is not None:
-                    match_level = min(job_level, skill["level"])
-                    score += match_level
-                    matched_skills.append(
-                        {"skill": skill["skill"], "candidate_level": skill["level"], "job_level": job_level}
-                    )
-                else:
-                    unmatched_skills.append({"skill": skill["skill"], "candidate_level": skill["level"]})
+            not_ver_skill = skill['skill']
+            if not_ver_skill in validated_skills:
+                updated_skill = skill.copy()
+                updated_skill["skill"] = validated_skills[not_ver_skill]
+                updated_skills.append(updated_skill)
+
+        for skill in updated_skills:
+            job_level = job_skill_levels.get(skill["skill"])
+            if job_level is not None:
+                match_level = min(job_level, skill["level"])
+                score += match_level
+                matched_skills.append(
+                    {"skill": skill["skill"], "candidate_level": skill["level"], "job_level": job_level}
+                )
+            else:
+                unmatched_skills.append({"skill": skill["skill"], "candidate_level": skill["level"]})
 
         matched_candidates.append((candidate, score, matched_skills, unmatched_skills))
 
@@ -199,7 +227,7 @@ def match_candidates(job_skills, candidates):
 def display_pdf_as_images(pdf_path):
     images = convert_from_path(pdf_path)
     for image in images:
-        st.image(image, caption="PDF Preview", use_column_width=True)
+        st.image(image, caption="PDF Preview", use_container_width=True)
 
 
 if "job_skills" not in st.session_state:
@@ -208,6 +236,14 @@ if "job_skills" not in st.session_state:
 if st.button("Extract Skills"):
     st.session_state.job_skills = extract_skills(job_description)
     st.json(st.session_state.job_skills)
+
+if st.button("Approve Job Description Skills by ESCO"):
+    if st.session_state.job_skills:
+        st.session_state.job_skills = validate_job_desc_skills(st.session_state.job_skills, esco_extractor)
+        st.success("Job description skills have been validated and updated!")
+        st.json(st.session_state.job_skills)
+    else:
+        st.write("Please extract skills from the job description first.")
 
 if st.button("Find Best Matches"):
     if not st.session_state.job_skills:
@@ -219,7 +255,8 @@ if st.button("Find Best Matches"):
 
         st.write("Matched Skills:")
         for match in matched_skills:
-            st.write(f"- {match['skill'].capitalize()} (Candidate Level: {match['candidate_level']}, Job Level: {match['job_level']})")
+            st.write(
+                f"- {match['skill'].capitalize()} (Candidate Level: {match['candidate_level']}, Job Level: {match['job_level']})")
 
         if unmatched_skills:
             st.write("Unmatched Skills:")

@@ -1,21 +1,36 @@
 import logging
 import os
+import pickle
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
 import pandas as pd
 import requests
 from esco_skill_extractor import SkillExtractor
+from sentence_transformers import SentenceTransformer
 
 
 class CustomSkillExtractor(SkillExtractor):
     def __init__(self, data_dir: Optional[str] = None, *args, **kwargs):
         self._dir = data_dir if data_dir else __file__.replace("__init__.py", "")
-
+        self.device = "cpu"
+        self.skills_threshold = 0.45
+        self.occupation_threshold = 0.55
         if not os.path.exists(self._dir):
             raise FileNotFoundError(f"Data directory does not exist: {self._dir}")
 
         super(SkillExtractor, self).__init__(*args, **kwargs)
+        self._load_models()
+        self._load_skills()
+        self._load_occupations()
+        self._create_skill_embeddings()
+        self._create_occupation_embeddings()
+
+    def _load_models(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._model = SentenceTransformer("all-MiniLM-L6-v2", device=self.device)
 
     def _load_skills(self):
         self._skills = pd.read_csv(f"{self._dir}/skills.csv")
@@ -24,6 +39,40 @@ class CustomSkillExtractor(SkillExtractor):
     def _load_occupations(self):
         self._occupations = pd.read_csv(f"{self._dir}/occupations.csv")
         self._occupation_ids = self._occupations["id"].to_numpy()
+
+    def _create_skill_embeddings(self):
+        if os.path.exists(f"{self._dir}/skill_embeddings.bin"):
+            with open(f"{self._dir}/skill_embeddings.bin", "rb") as f:
+                self._skill_embeddings = pickle.load(f).to(self.device)
+        else:
+            print(
+                "Skill embeddings file not found. Creating embeddings from scratch..."
+            )
+            self._skill_embeddings = self._model.encode(
+                self._skills["description"].to_list(),
+                device=self.device,
+                normalize_embeddings=True,
+                convert_to_tensor=True,
+            )
+            with open(f"{self._dir}/skill_embeddings.bin", "wb") as f:
+                pickle.dump(self._skill_embeddings, f)
+
+    def _create_occupation_embeddings(self):
+        if os.path.exists(f"{self._dir}/occupation_embeddings.bin"):
+            with open(f"{self._dir}/occupation_embeddings.bin", "rb") as f:
+                self._occupation_embeddings = pickle.load(f).to(self.device)
+        else:
+            print(
+                "Occupation embeddings file not found. Creating embeddings from scratch..."
+            )
+            self._occupation_embeddings = self._model.encode(
+                self._occupations["description"].to_list(),
+                device=self.device,
+                normalize_embeddings=True,
+                convert_to_tensor=True,
+            )
+            with open(f"{self._dir}/occupation_embeddings.bin", "wb") as f:
+                pickle.dump(self._occupation_embeddings, f)
 
 
 class EscoExtractor:
